@@ -25,20 +25,26 @@ I was assigned (2).
 ## Anomaly Detection Using an LSTM Front-Loaded with Cross Correlation Data from AGC & CN0 Signals
 
 * I sorted the data into 106 separate phone signals and serialized it using a "local time stamp" gathered by SOFWERX engineers
-* At every time slice, I calculate the cross correlation matrix (CCM) for all signals on a window of 100 time slices
+* At every time slice, I calculate the cross correlation matrix (CCM) for all signals on some predetermined window of time slices
 * I flatten the CCM and append it to the signal data at the end of each window
-* I then mold the data to make it into a suitable input for an LSTM, establishing a time sequence window of 10 time slices. Thus in this model, there are two separate lookaheads: (1) the cross-correlation that looks ahead by 20 time slices and (2) the LSTM time slice window that looks ahead by 10 time slices. 
+* I then mold the data to make it into a suitable input for an LSTM, establishing some predetermined input time sequence. Thus in this model, there are two separate time windows: (1) the cross-correlation performed on a previous window of time slices (initially 20) and (2) the LSTM input time sequence if time slices (initially 10). 
 * I then feed the data into an LSTM with 4 nodes
 
 ## Status
 * This is a work in progress. There is a whole host of possible tuning experiments we could attempt with this model:
   (1) Changing the size of the cross-correlation window
   (2) Changing the size of the LSTM input sequence window
-  (3) Increasing the number of epochs in the LSTM.
-  (4) Exploring different metrics
-  (5) Acquiring more complete data. What we have now might be unbalanced because most of it as labeled Attack=True, meaning jamming is present.    
-* I have not completed the intial implementation of this, still need to do some basic things like standardize the data. I have no plots to speak of. Accuracy in an initial trial run was suspiciously high.
+  (3) Changing the sampling rate to make the windows extend over a larger segment of the signal without increasing computational overhead
+  (3) LSTM tuning, for example:
+      * Varying numbers of nodes
+      * Varying numbers of epochs
+      * Stacking LSTMs
+  (4) Acquiring more complete data. What we have now might be unbalanced because most of it as labeled Attack=True, meaning jamming is present.    
+* **Results**: So far, the ROC-AUC results are atrocious. I suspect the windows are not covering large enough segments of the signals, but increasing the size of the cross correlation window is very computationally expensive. I have a machine doing the cross correlation with a window of 100 right now. So far it has run 20 hours and still has not completed.
 
-## Potential Paths of Future Exploration
-* As indicated above, a lot of experimentation could be done with the LSTM 
+## Conclusion from Early Results
+* Initial results with Hao's Random Forest using *all* the parameters *except* AGC & CN0 were much better than my results using an LSTM whose *only* inputs are AGC and CN0.
+* But before discarding the signal processing + LSTM approach, we should:
+  * Explore using LSTMs over larger windows and different more sparse sampling rates
+  * Try the model with different data. In current data, Attack = True dominates considerably. 
 * There may be ways to enhanced the sophistication of the signal analysis, such as singular signal analysis (SSA)
